@@ -1,6 +1,7 @@
 package com.chanseok.emsstudy.config;
 
 import com.chanseok.emsstudy.listener.EmsMessageListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -17,7 +18,9 @@ import javax.jms.Session;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class EmsJmsRunner {
+    private final EmsMessageListener messageListener;
 
     @EventListener(ApplicationReadyEvent.class)
     public void statJmsListener() throws JMSException {
@@ -29,7 +32,7 @@ public class EmsJmsRunner {
         Destination destination = session.createQueue("ems.queue");
         MessageConsumer consumer = session.createConsumer(destination);
 
-        consumer.setMessageListener(new EmsMessageListener());
+        consumer.setMessageListener(messageListener);
     }
 
 }

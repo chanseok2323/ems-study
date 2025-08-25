@@ -1,4 +1,4 @@
-package com.chanseok.emsstudy.web;
+package com.chanseok.emsstudy.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,8 +12,9 @@ import java.util.Map;
 public class EmsTestController {
 
     @PostMapping
-    public void test(@RequestBody Map<String, Object> message) {
+    public Map<String, Object> test(@RequestBody Map<String, Object> message) {
         System.out.println("message = " + message);
+        return Map.of("status", "success", "received", message);
     }
 
 }
