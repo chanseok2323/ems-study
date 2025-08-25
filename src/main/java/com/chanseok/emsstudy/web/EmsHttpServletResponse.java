@@ -79,8 +79,6 @@ public class EmsHttpServletResponse implements HttpServletResponse {
      */
     private Long explicitContentLength;
 
-    // ------------------------------ 편의 메서드 ------------------------------
-
     /**
      * 응답 바디를 바이트 배열로 반환
      */
@@ -105,6 +103,10 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         return errorMessage;
     }
 
+    /**
+     * 명시적 Content-Length 조회 (없으면 null)
+     * @param cookie 쿠키 객체
+     */
     @Override
     public void addCookie(Cookie cookie) {
         if (cookie == null) return;
@@ -119,33 +121,64 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         addHeader("Set-Cookie", sb.toString());
     }
 
+    /**
+     * 특정 이름의 헤더 존재 여부
+     * @param name 헤더 이름
+     * @return 존재 여부
+     */
     @Override
     public boolean containsHeader(String name) {
         return headers.containsKey(name);
     }
 
+    /**
+     * 세션ID 인코딩 비지원
+     * @param url 리다이렉트 URL
+     * @return 리다이렉트 URL
+     */
     @Override
     public String encodeURL(String url) {
         return url;
     }              // 세션ID 인코딩 비지원
 
+    /**
+     * 세션ID 인코딩 비지원
+     * @param url 리다이렉트 URL
+     * @return 리다이렉트 URL
+     */
     @Override
     public String encodeRedirectURL(String url) {
         return url;
     }      // 세션ID 인코딩 비지원
 
+    /**
+     * @deprecated
+     * @param url 리다이렉트 URL
+     * @return 리다이렉트 URL
+     */
     @Deprecated
     @Override
     public String encodeUrl(String url) {
         return encodeURL(url);
     }
 
+    /**
+     * @deprecated
+     * @param url 리다이렉트 URL
+     * @return 리다이렉트 URL
+     */
     @Deprecated
     @Override
     public String encodeRedirectUrl(String url) {
         return encodeRedirectURL(url);
     }
 
+    /**
+     * sendError 상태 설정 (메시지 포함)
+     * @param sc 상태 코드
+     * @param msg 상태 메시지
+     * @throws IOException 응답이 이미 커밋된 경우
+     */
     @Override
     public void sendError(int sc, String msg) throws IOException {
         checkCommitted();
@@ -155,11 +188,21 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         this.committed = true;
     }
 
+    /**
+     * sendError 상태 설정 (메시지 없음)
+     * @param sc 상태 코드
+     * @throws IOException 응답이 이미 커밋된 경우
+     */
     @Override
     public void sendError(int sc) throws IOException {
         sendError(sc, null);
     }
 
+    /**
+     * 리다이렉트 설정: 상태 302, Location 헤더 설정, 버퍼 초기화, committed로 전환
+     * @param location 리다이렉트 URL
+     * @throws IOException 응답이 이미 커밋된 경우
+     */
     @Override
     public void sendRedirect(String location) throws IOException {
         checkCommitted();
@@ -169,16 +212,31 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         this.committed = true;
     }
 
+    /**
+     * 단일값 날짜 헤더 설정
+     * @param name 헤더 이름
+     * @param date 밀리초 단위의 epoch 시간
+     */
     @Override
     public void setDateHeader(String name, long date) {
         setHeader(name, toHttpDate(date));
     }
 
+    /**
+     * 다중값 날짜 헤더 추가
+     * @param name 헤더 이름
+     * @param date 밀리초 단위의 epoch 시간
+     */
     @Override
     public void addDateHeader(String name, long date) {
         addHeader(name, toHttpDate(date));
     }
 
+    /**
+     * HTTP 날짜 형식으로 변환 (RFC 1123)
+     * @param epochMillis 밀리초 단위의 epoch 시간
+     * @return HTTP 날짜 문자열
+     */
     private String toHttpDate(long epochMillis) {
         // RFC 1123
         SimpleDateFormat fmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
@@ -186,6 +244,11 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         return fmt.format(new Date(epochMillis));
     }
 
+    /**
+     * 단일값 헤더 설정
+     * @param name 헤더 이름
+     * @param value 헤더 값
+     */
     @Override
     public void setHeader(String name, String value) {
         List<String> list = new ArrayList<>(1);
@@ -210,6 +273,11 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         }
     }
 
+    /**
+     * 다중값 헤더 추가
+     * @param name 헤더 이름
+     * @param value 헤더 값
+     */
     @Override
     public void addHeader(String name, String value) {
         headers.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
@@ -218,16 +286,30 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         }
     }
 
+    /**
+     * 단일값 헤더 설정
+     * @param name 헤더 이름
+     * @param value 헤더 값
+     */
     @Override
     public void setIntHeader(String name, int value) {
         setHeader(name, String.valueOf(value));
     }
 
+    /**
+     * 다중값 헤더 추가
+     * @param name 헤더 이름
+     * @param value 헤더 값
+     */
     @Override
     public void addIntHeader(String name, int value) {
         addHeader(name, String.valueOf(value));
     }
 
+    /**
+     * 상태 코드 설정
+     * @param sc 상태 코드
+     */
     @Override
     public void setStatus(int sc) {
         this.status = sc;
@@ -243,33 +325,59 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         this.errorMessage = sm;
     }
 
+    /**
+     * 현재 상태 코드 반환
+     * @return 상태 코드
+     */
     @Override
     public int getStatus() {
         return status;
     }
 
+    /**
+     * 특정 이름의 첫 번째 헤더 값 반환
+     * @param name 헤더 이름
+     * @return 헤더 값
+     */
     @Override
     public String getHeader(String name) {
         List<String> list = headers.get(name);
         return (list == null || list.isEmpty()) ? null : list.get(0);
     }
 
+    /**
+     * 특정 이름의 모든 헤더 값 반환
+     * @param name 헤더 이름
+     * @return 헤더 값 컬렉션 (수정 불가, 없으면 빈 컬렉션 반환)
+     */
     @Override
     public Collection<String> getHeaders(String name) {
         List<String> list = headers.get(name);
         return (list == null) ? Collections.emptyList() : Collections.unmodifiableList(list);
     }
 
+    /**
+     * 모든 헤더 이름 반환
+     * @return 헤더 이름 컬렉션 (수정 불가)
+     */
     @Override
     public Collection<String> getHeaderNames() {
         return Collections.unmodifiableSet(headers.keySet());
     }
 
+    /**
+     * 문자셋 반환
+     * @return 문자셋
+     */
     @Override
     public String getCharacterEncoding() {
         return characterEncoding; // null 허용 가능하지만, 여기선 기본 UTF-8
     }
 
+    /**
+     * Content-Type 반환
+     * @return Content-Type
+     */
     @Override
     public String getContentType() {
         return contentType;
@@ -307,6 +415,10 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         return writer;
     }
 
+    /**
+     * 문자셋 설정. Content-Type에 charset이 없으면 보조적으로 붙여줌.
+     * @param charset 문자셋
+     */
     @Override
     public void setCharacterEncoding(String charset) {
         this.characterEncoding = charset;
@@ -316,30 +428,50 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         }
     }
 
+    /**
+     * Content-Length 설정
+     * @param len
+     */
     @Override
     public void setContentLength(int len) {
         setIntHeader("Content-Length", len);
         this.explicitContentLength = (long) len;
     }
 
+    /**
+     * Content-Length 설정 (Servlet 3.1부터)
+     * @param len Content-Length
+     */
     @Override
     public void setContentLengthLong(long len) {
         setHeader("Content-Length", String.valueOf(len));
         this.explicitContentLength = len;
     }
 
+    /**
+     * Content-Type 설정. charset이 포함될 수 있음.
+     * @param type Content-Type
+     */
     @Override
     public void setContentType(String type) {
         setHeader("Content-Type", type);
         this.contentType = type;
     }
 
+    /**
+     * 버퍼 크기 설정. committed 상태에선 무시.
+     * @param size 버퍼크기
+     */
     @Override
     public void setBufferSize(int size) {
         if (committed) return;
         this.bufferSize = size;
     }
 
+    /**
+     * 현재 버퍼 크기 반환
+     * @return 버퍼크기
+     */
     @Override
     public int getBufferSize() {
         return bufferSize;
@@ -394,6 +526,10 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         outputStream = null;
     }
 
+    /**
+     * Locale 설정. Content-Language 헤더를 갱신할 수 있음.
+     * @param loc
+     */
     @Override
     public void setLocale(Locale loc) {
         this.locale = loc;
@@ -401,52 +537,90 @@ public class EmsHttpServletResponse implements HttpServletResponse {
         setHeader("Content-Language", loc.toLanguageTag());
     }
 
+    /**
+     * 현재 Locale 반환
+     * @return
+     */
     @Override
     public Locale getLocale() {
         return locale;
     }
 
-    // ------------------------------ 내부 유틸 ------------------------------
-
+    /**
+     * 응답이 이미 커밋되었는지 검사. 커밋되었으면 IOException 발생.
+     * @throws IOException
+     */
     private void checkCommitted() throws IOException {
         if (committed) throw new IOException("Response already committed");
     }
 
     /**
-     * 내부 ServletOutputStream 구현: 메모리 바디에 기록
+     * ServletOutputStream 구현체: 내부적으로 OutputStream을 감싼다.
      */
     private static class InternalServletOutputStream extends ServletOutputStream {
         private final OutputStream delegate;
 
+        /**
+         * 생성자
+         * @param delegate
+         */
         InternalServletOutputStream(OutputStream delegate) {
             this.delegate = delegate;
         }
 
+        /**
+         * 스트림이 모두 소진되었는지 여부 (항상 false)
+         * @return
+         */
         @Override
         public boolean isReady() {
             return true;
         }
 
+        /**
+         * Async I/O 미지원
+         * @param writeListener
+         */
         @Override
         public void setWriteListener(WriteListener writeListener) {
             throw new UnsupportedOperationException("Async not supported");
         }
 
+        /**
+         * 한 바이트 기록 (OutputStream의 write(int) 호출)
+         * @param b   the <code>byte</code>.
+         * @throws IOException
+         */
         @Override
         public void write(int b) throws IOException {
             delegate.write(b);
         }
 
+        /**
+         * 바이트 배열 기록 (OutputStream의 write(byte[], int, int) 호출)
+         * @param b     the data.
+         * @param off   the start offset in the data.
+         * @param len   the number of bytes to write.
+         * @throws IOException
+         */
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
             delegate.write(b, off, len);
         }
 
+        /**
+         * 스트림 플러시 (delegate도 플러시)
+         * @throws IOException
+         */
         @Override
         public void flush() throws IOException {
             delegate.flush();
         }
 
+        /**
+         * 스트림 닫기 (delegate도 닫음)
+         * @throws IOException
+         */
         @Override
         public void close() throws IOException {
             delegate.close();
